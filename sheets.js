@@ -6,8 +6,15 @@ var apiKey = "";
 // These are okay
 var url = "https://api.pocketsmith.com/v2";
 var userID = fetch("/me").id;
+var accounts = fetch("/users/"+userID+"/accounts");
 var per_page = 100;
 //
+
+// Run reports when the sheet is opened
+function onOpen(e) {
+  VariableUtilitiesReport();
+  AccountReport();
+}
 
 function VariableUtilitiesReport()
 {
@@ -26,7 +33,7 @@ function VariableUtilitiesReport()
   
   while (sheet.getRange(row,1).getValue()) {
     var payee = sheet.getRange(row,1).getValue();;
-    var payeeRow = payeeAmountGet(payee);
+    var payeeRow = getPayeeRow(payee);
     var column = 2;
     for each(var attribute in payeeRow) {
       sheet.getRange(row,column).setValue(attribute);
@@ -36,7 +43,79 @@ function VariableUtilitiesReport()
   }
 }
 
-function payeeAmountGet(payee) {
+function AccountReport()
+{
+  // Sheet details
+  var sheetName = "Accounts";
+  var cells = "A2:Z100";
+  
+  // Clear the existing content
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName).getRange(cells).clearContent();
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+  
+  // Display accounts 
+  var row = 1;
+  sheet.getRange(row,1).setValue("Assets");
+  sheet.getRange(row,4).setValue("Liabilities");
+  sheet.getRange(row,7).setValue("Investments")
+  sheet.getRange(row,10).setValue("Other");
+  row++;
+  
+  var assets = ["bank","cash","vehicle","other_assets",];
+  var liabilities = ["credits","loans","other_liability"];
+  var investments = ["stocks"];
+  //var property = ["property","vehicle"];
+  var others = ["mortgage"];
+  
+  // Display assets
+  for each(var account in accounts) {
+    var column = 1;
+    if(assets.indexOf(account.type)!=-1) {
+      sheet.getRange(row,column).setValue(account.title);
+      column++;
+      sheet.getRange(row,column).setValue(account.current_balance);
+      row++
+    }
+  }
+  
+  // Display liabilities
+  row = 2;
+  for each(var account in accounts) {
+    var column = 4;
+    if(liabilities.indexOf(account.type)!=-1) {
+      sheet.getRange(row,column).setValue(account.title);
+      column++;
+      sheet.getRange(row,column).setValue(account.current_balance);
+      row++;
+    }
+  }
+  
+  // Display investments
+  row = 2;
+  for each(var account in accounts) {
+    var column = 7;
+    if(investments.indexOf(account.type)!=-1) {
+      sheet.getRange(row,column).setValue(account.title);
+      column++;
+      sheet.getRange(row,column).setValue(account.current_balance);
+      row++;
+    }
+  }
+  
+  // Display others
+  row = 2;
+  for each(var account in accounts) {
+    var column = 10;
+    if(others.indexOf(account.type)!=-1) {
+      sheet.getRange(row,column).setValue(account.title);
+      column++;
+      sheet.getRange(row,column).setValue(account.current_balance);
+      row++;
+    }
+  }
+}
+
+function getPayeeRow(payee) {
   var payeeRow = new Array();
   var totalAmount = 0;
   var transactions = fetch("/users/"+userID+"/transactions?per_page="+per_page+"&search="+payee);
@@ -64,54 +143,6 @@ function payeeAmountGet(payee) {
 }
 
 /*
-// Needs tweaking
-//
-function AccountReport()
-{
-  // Sheet details
-  var sheetName = "Account Report";
-  var cells = "A2:H35";
-  
-  // Clear the existing content
-  var range = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName).getRange(cells).clearContent();
-  
-  // Display accounts
-  var row = 0;
-  var range = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName).getRange(cells);
-  var values = range.getValues();
-  
-  var assets = ["bank","other_assets"];
-  var liabilities = ["credits","loans","other_liability"];
-  var type_row = [0][0][0];
-  
-  var accounts = fetch("/users/85943/accounts");
-  
-  for(var accountIndex in accounts) {
-    var account = accounts[accountIndex];
-    
-    // Sort and display accounts
-    if(assets.indexOf(account.type) != -1) {
-      values[row][0] = account.title;
-      values[row][1] = account.current_balance;
-    }
-    else if(liabilities.indexOf(account.type) != -1) {
-      values[row][0+3] = account.title;
-      values[row][0+4] = account.current_balance;
-    }
-    else
-    {
-      values[row][0+6] = account.title;
-      values[row][0+7] = account.current_balance;
-    }
-    
-    row++;
-  }
-  
-  range.setValues(values);
-}*/
-
-
-/*
 //
 These functions essentially work as REST actions
 //
@@ -130,15 +161,10 @@ function fetch(path) {
   return response; 
 }
 
-function accountAmountGet(accountName) {
-  var path = "/users/"+userID+"/accounts";
-  var accounts = fetch(path);
-  
-  for(var accountIndex in accounts) {
-    var account = accounts[accountIndex];
+function getAccountAmount(accountName) {
+  for each(var account in accounts) {
     if( account.title == accountName ) {
       return account.current_balance;
     }
-  }  
-}
-
+  }
+}  
