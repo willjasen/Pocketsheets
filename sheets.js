@@ -125,17 +125,17 @@ function getPayeeRow(payee) {
   var stdDev = new Array();
   
   // Calculate total amount, # of transactions, average, and standard deviation
-  for(var transactionIndex in transactions) {
-    var transaction = transactions[transactionIndex];
+  for each(var transaction in transactions) {
     totalAmount += transaction.amount;
-    stdDev[transactionIndex] = transaction.amount;
+    stdDev.push(transaction.amount);
   }
   var average = totalAmount / transactions.length;
+  
   var summedSquares = 0;
-  for(var index in stdDev) {
-    summedSquares += Math.pow((stdDev[index] - average),2);
+  for each(var amount in stdDev) {
+    summedSquares += Math.pow((amount - average),2);
   }
-  var standardDeviation = Math.sqrt(summedSquares / stdDev.length - 1);
+  var standardDeviation = Math.sqrt(summedSquares / transactions.length - 1);
   
   payeeRow.push(totalAmount);
   payeeRow.push(transactions.length);
@@ -145,9 +145,37 @@ function getPayeeRow(payee) {
   return payeeRow;
 }
 
+function getCategoryRow(category) {
+  var categoryRow = new Array();
+  var totalAmount = 0;
+  var transactions = fetch("/users/"+userID+"/transactions?per_page="+per_page+"&search="+category);
+  var stdDev = new Array();
+  
+  // Calculate total amount, # of transactions, average, and standard deviation
+  for each(var transaction in transactions) {
+    totalAmount += transaction.amount;
+    stdDev.push(transaction.amount);
+  }
+  var average = totalAmount / transactions.length;
+  
+  var summedSquares = 0;
+  for each(var amount in stdDev) {
+    summedSquares += Math.pow((amount - average),2);
+  }
+  var standardDeviation = Math.sqrt(summedSquares / transactions.length - 1);
+  
+  //payeeRow.push(totalAmount);
+  categoryRow.push(transactions.length);
+  categoryRow.push(average);
+  categoryRow.push(standardDeviation);
+  categoryRow.push(totalAmount);
+  
+  return categoryRow;
+}
+
 /*
 //
-These functions essentially work as REST actions
+These functions essentially work as REST GET actions
 //
 */
 
@@ -170,4 +198,4 @@ function getAccountAmount(accountName) {
       return account.current_balance;
     }
   }
-}  
+} 
