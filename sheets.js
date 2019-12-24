@@ -53,6 +53,12 @@ function AccountReport()
   SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName).getRange(cells).clearContent();
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
   
+  var assets = ["bank","cash","other_assets","property","vehicle"];
+  var liabilities = ["credits","loans","other_liability","mortgage"];
+  var investments = ["stocks"];
+  //var property = ["property","vehicle"];
+  var others = [""];
+  
   // Display accounts 
   var row = 1;
   sheet.getRange(row,1).setValue("Assets");
@@ -61,12 +67,6 @@ function AccountReport()
   sheet.getRange(row,10).setValue("Other");
   row++;
   
-  var assets = ["bank","cash","vehicle","other_assets",];
-  var liabilities = ["credits","loans","other_liability"];
-  var investments = ["stocks"];
-  //var property = ["property","vehicle"];
-  var others = ["mortgage"];
-  
   // Display assets
   for each(var account in accounts) {
     var column = 1;
@@ -74,6 +74,7 @@ function AccountReport()
       sheet.getRange(row,column).setValue(account.title);
       column++;
       sheet.getRange(row,column).setValue(account.current_balance);
+      sheet.getRange(row,column).setFontColor("green");
       row++
     }
   }
@@ -85,7 +86,8 @@ function AccountReport()
     if(liabilities.indexOf(account.type)!=-1) {
       sheet.getRange(row,column).setValue(account.title);
       column++;
-      sheet.getRange(row,column).setValue(account.current_balance);
+      sheet.getRange(row,column).setValue(account.current_balance*-1);
+      sheet.getRange(row,column).setFontColor("red");
       row++;
     }
   }
@@ -98,6 +100,7 @@ function AccountReport()
       sheet.getRange(row,column).setValue(account.title);
       column++;
       sheet.getRange(row,column).setValue(account.current_balance);
+      sheet.getRange(row,column).setFontColor("blue");
       row++;
     }
   }
